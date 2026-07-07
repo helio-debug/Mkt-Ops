@@ -1,9 +1,11 @@
 {
-  "name": "spyops-plugin",
-  "version": "1.0.0",
+  "name": "spyops-skill",
+  "version": "1.1.0",
   "private": true,
-  "description": "Scripts do SpyOps (Puppeteer). Instalado pelo setup do plugin.",
+  "description": "Scripts do SpyOps (Puppeteer + ffmpeg-static). Instalado pelo setup.",
   "dependencies": {
-    "puppeteer": "^24.0.0"
+    "puppeteer": "^24.0.0",
+    "ffmpeg-static": "^5.2.0",
+    "ffprobe-static": "^3.1.0"
   }
 }

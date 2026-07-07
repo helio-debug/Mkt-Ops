@@ -1,6 +1,6 @@
 #!/bin/bash
-# Sincroniza os scripts canônicos (automacao/spyops/) -> a skill do repo Mkt-Ops,
-# aplicando a adaptação do caminho do Whisper. Rode quando mudar o canônico.
+# Sincroniza os scripts canônicos (automacao/spyops/) -> a skill do repo Mkt-Ops.
+# Os scripts já se auto-ajustam ao ambiente (env vars), então é só copiar.
 #   bash automacao/spyops-plugin/sync-from-canonical.sh
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -10,16 +10,5 @@ DST="$HERE/skills/spyops/scripts"
 
 cp "$SRC/spy-ads.js" "$DST/spy-ads.js"
 cp "$SRC/spy-videos.js" "$DST/spy-videos.js"
-
-python3 - "$DST/spy-videos.js" <<'PY'
-import sys
-p = sys.argv[1]
-s = open(p, encoding="utf-8").read()
-s = s.replace('const REPO = path.resolve(__dirname, "..", "..");',
-              'const SKILL_ROOT = process.env.CLAUDE_SKILL_DIR || process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, "..");')
-s = s.replace('const WHISPER = path.join(REPO, "automacao", "whisper", ".venv", "bin", "whisper");',
-              'const WHISPER = process.env.SPYOPS_WHISPER || path.join(SKILL_ROOT, ".venv", "bin", "whisper");')
-open(p, "w", encoding="utf-8").write(s)
-PY
 
 echo "[sync] skill atualizada a partir de automacao/spyops/"

@@ -27,8 +27,47 @@ const path = require("path");
 const { execFileSync, spawnSync } = require("child_process");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Whisper local (opcional): venv da casa internamente; no skill/plugin, a própria pasta.
 const SKILL_ROOT = process.env.CLAUDE_SKILL_DIR || process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, "..");
-const WHISPER = process.env.SPYOPS_WHISPER || path.join(SKILL_ROOT, ".venv", "bin", "whisper");
+const REPO_WHISPER = path.join(__dirname, "..", "..", "automacao", "whisper", ".venv", "bin", "whisper");
+const WHISPER = process.env.SPYOPS_WHISPER
+  || (fs.existsSync(REPO_WHISPER) ? REPO_WHISPER : path.join(SKILL_ROOT, ".venv", "bin", "whisper"));
+
+// ffmpeg/ffprobe: usa o do sistema; senão cai nos pacotes estáticos (via npm).
+function resolveBin(sys, staticPkg, field) {
+  try { execFileSync(sys, ["-version"], { stdio: "ignore" }); return sys; } catch (_) {}
+  try { const m = require(staticPkg); return field ? m[field] : m; } catch (_) {}
+  return sys;
+}
+const FFMPEG = resolveBin("ffmpeg", "ffmpeg-static");
+const FFPROBE = resolveBin("ffprobe", "ffprobe-static", "path");
+
+// API key de transcrição (opcional): env ou <SKILL_ROOT>/.env. OpenAI ou Groq.
+function transcribeKey() {
+  const pick = (k) => k
+    ? { key: k.startsWith("gsk_") ? k : k, url: k.startsWith("gsk_")
+        ? "https://api.groq.com/openai/v1/audio/transcriptions"
+        : "https://api.openai.com/v1/audio/transcriptions",
+        model: k.startsWith("gsk_") ? "whisper-large-v3" : "whisper-1" }
+    : null;
+  if (process.env.OPENAI_API_KEY) return pick(process.env.OPENAI_API_KEY);
+  if (process.env.GROQ_API_KEY) return pick(process.env.GROQ_API_KEY);
+  try {
+    const envf = path.join(SKILL_ROOT, ".env");
+    if (fs.existsSync(envf)) {
+      const o = {};
+      for (const line of fs.readFileSync(envf, "utf8").split("\n")) {
+        const t = line.trim();
+        if (!t || t.startsWith("#")) continue;
+        const i = t.indexOf("=");
+        if (i > 0) o[t.slice(0, i).trim()] = t.slice(i + 1).trim().replace(/^["']|["']$/g, "");
+      }
+      return pick(o.OPENAI_API_KEY || o.GROQ_API_KEY);
+    }
+  } catch (_) {}
+  return null;
+}
 
 function parseArgs() {
   const a = process.argv.slice(2);
@@ -57,7 +96,7 @@ function parseArgs() {
 
 function ffprobeDuration(url) {
   try {
-    const r = execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", url],
+    const r = execFileSync(FFPROBE, ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", url],
       { timeout: 45000 }).toString().trim();
     return r ? Math.round(parseFloat(r) * 10) / 10 : null;
   } catch (_) { return null; }
@@ -127,15 +166,37 @@ function ffprobeDuration(url) {
       execFileSync("curl", ["-sL", "-o", mp4, u], { timeout: 180000 });
       const entry = { file: `${base}.mp4`, duration_s: dur, url: u };
       if (opt.frames) {
-        spawnSync("ffmpeg", ["-y", "-v", "error", "-i", mp4, "-vf", "fps=1/4,scale=320:-1,tile=4x3", "-frames:v", "1",
+        spawnSync(FFMPEG, ["-y", "-v", "error", "-i", mp4, "-vf", "fps=1/4,scale=320:-1,tile=4x3", "-frames:v", "1",
           path.join(opt.out, `${base}-mosaic.jpg`)], { timeout: 120000 });
         entry.mosaic = `${base}-mosaic.jpg`;
       }
-      if (opt.transcribe && fs.existsSync(WHISPER)) {
-        const args = [mp4, "--model", "small", "--output_format", "txt", "--output_dir", opt.out];
-        if (opt.lang !== "auto") args.push("--language", opt.lang);
-        spawnSync(WHISPER, args, { timeout: 600000 });
-        entry.transcript = `${base}.txt`;
+      if (opt.transcribe) {
+        const tk = transcribeKey();
+        if (tk) {
+          // extrai áudio e manda pra API (OpenAI/Groq)
+          const audio = path.join(opt.out, `${base}.mp3`);
+          const ff = spawnSync(FFMPEG, ["-y", "-v", "error", "-i", mp4, "-vn", "-ac", "1", "-ar", "16000", "-b:a", "64k", audio], { timeout: 120000 });
+          if (ff.status === 0 && fs.existsSync(audio)) {
+            const r = spawnSync("curl", ["-s", tk.url, "-H", `Authorization: Bearer ${tk.key}`,
+              "-F", `file=@${audio}`, "-F", `model=${tk.model}`, "-F", "response_format=text"],
+              { encoding: "utf8", timeout: 180000, maxBuffer: 20 * 1024 * 1024 });
+            const out = (r.stdout || "").trim();
+            if (out && !out.startsWith("{")) {
+              fs.writeFileSync(path.join(opt.out, `${base}.txt`), out);
+              entry.transcript = `${base}.txt`;
+            } else {
+              entry.transcript_error = (out || "sem resposta da API").slice(0, 200);
+            }
+            try { fs.unlinkSync(audio); } catch (_) {}
+          }
+        } else if (fs.existsSync(WHISPER)) {
+          const args = [mp4, "--model", "small", "--output_format", "txt", "--output_dir", opt.out];
+          if (opt.lang !== "auto") args.push("--language", opt.lang);
+          spawnSync(WHISPER, args, { timeout: 600000 });
+          entry.transcript = `${base}.txt`;
+        } else {
+          entry.transcript_skipped = "sem API key e sem Whisper local";
+        }
       }
       index.push(entry);
       console.log(`✓ ${base}.mp4 (${dur}s)`);

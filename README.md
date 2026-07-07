@@ -17,7 +17,7 @@ Isso copia a skill pra `~/.claude/skills/spyops/` e instala o puppeteer (Chromiu
 ## Pré-requisitos do aluno
 - **Claude Code capaz de rodar shell** (terminal CLI, app desktop, ou web). SpyOps roda Node + Puppeteer, então precisa de um ambiente com Bash — **não roda em ambiente sem execução de comando.**
 - **Node** instalado (o setup instala o resto).
-- Opcional (análise de vídeo): **ffmpeg + Whisper** — o setup tenta; se falhar, o SpyOps roda normal só pulando os vídeos.
+- Opcional (transcrição de vídeo): colar uma **API key** (OpenAI ou Groq) em `.env`. Sem chave, roda normal só pulando os vídeos. ffmpeg entra automático (ffmpeg-static).
 - A execução usa a conta/assinatura Claude do aluno (custo dele, não seu).
 
 ## Estrutura do repo

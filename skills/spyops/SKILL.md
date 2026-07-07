@@ -34,7 +34,7 @@ node "${CLAUDE_SKILL_DIR}/scripts/spy-videos.js" --from-json "analises/<slug>/sp
 ```
 - Ler os mosaicos (`*-mosaic.jpg`) com a tool Read pra descrever o visual.
 - Ler as transcrições (`*.txt`). Vazia = vídeo só com música → analisar pelo mosaico.
-- Sem Whisper instalado, rodar sem `--transcribe` (só frames).
+- **Transcrição precisa de API key** (opcional): copiar `${CLAUDE_SKILL_DIR}/.env.example` pra `.env` e colar `OPENAI_API_KEY` (ou `GROQ_API_KEY`). Sem chave, o script pula a transcrição e segue com frames — analisar pelo mosaico.
 
 ## Passo 3 — Mapear o funil
 Pra cada destino em `spy-ads.json → destinations`, raspar a LP (Puppeteer: goto + scroll + innerText + anchors + forms; ou `curl -sL` se estática). Levantar: preço/lotes, countdown, campos de form, provedor de checkout, builder da página, WhatsApp, downsells.
