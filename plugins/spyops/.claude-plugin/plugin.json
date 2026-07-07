@@ -1,0 +1,9 @@
+{
+  "name": "spyops",
+  "version": "1.0.0",
+  "description": "SpyOps — espiona anúncios de concorrentes na Meta Ad Library (copy, funil, landing pages e vídeos transcritos), sem token e sem Playwright. Comando /spy.",
+  "author": {
+    "name": "Studio Artemis / MktOps",
+    "email": "helio@studioartemis.co"
+  }
+}

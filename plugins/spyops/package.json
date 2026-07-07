@@ -1,0 +1,9 @@
+{
+  "name": "spyops-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts do SpyOps (Puppeteer). Instalado pelo setup do plugin.",
+  "dependencies": {
+    "puppeteer": "^24.0.0"
+  }
+}

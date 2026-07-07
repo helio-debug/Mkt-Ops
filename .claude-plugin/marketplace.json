@@ -1,0 +1,18 @@
+{
+  "name": "mktops",
+  "owner": {
+    "name": "Studio Artemis / MktOps",
+    "email": "helio@studioartemis.co"
+  },
+  "metadata": {
+    "description": "Ferramentas MktOps para alunos. Comece pelo SpyOps.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "spyops",
+      "source": "./plugins/spyops",
+      "description": "Espionagem de anúncios na Meta Ad Library: copy, funil, LPs e vídeos transcritos. Comando /spy."
+    }
+  ]
+}

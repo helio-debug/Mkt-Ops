@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f \"${CLAUDE_PLUGIN_ROOT}/.setup-done\" || echo '[spyops] Ainda não configurado. Rode /spy que eu instalo o ambiente na primeira vez.'"
+          }
+        ]
+      }
+    ]
+  }
+}

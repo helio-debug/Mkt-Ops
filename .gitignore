@@ -1,0 +1,9 @@
+# Dependências instaladas na máquina do aluno (o setup.sh recria)
+node_modules/
+.venv/
+.setup-done
+
+# Saídas de análise / temporários
+analises/
+*.log
+launchd.*.log
