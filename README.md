@@ -1,44 +1,43 @@
-# mktops — marketplace de plugins (SpyOps)
+# SpyOps — skill do Claude Code (Mkt-Ops)
 
-Repositório privado = marketplace do Claude Code. Contém o plugin **spyops**.
-Distribuído pra alunos via convite no repo privado (o acesso pago é o convite).
+Espionagem de anúncios na Meta Ad Library: copy dos ads ativos, funil, landing pages e vídeos transcritos. Entregue como **skill** — funciona em qualquer Claude Code, **sem `/plugin`, sem conta GitHub**.
 
-## Estrutura
+## Instalação (aluno) — uma linha
+No terminal, ou pedindo pro próprio Claude Code rodar:
+```bash
+curl -fsSL https://raw.githubusercontent.com/helio-debug/Mkt-Ops/main/install.sh | bash
 ```
-.claude-plugin/marketplace.json     ← catálogo
-plugins/spyops/
-  .claude-plugin/plugin.json        ← manifesto do plugin
-  skills/spyops/SKILL.md            ← a skill
-  commands/spy.md                    ← comando /spy
-  hooks/hooks.json                   ← nudge de setup no início da sessão
-  scripts/spy-ads.js, spy-videos.js  ← pipeline (Puppeteer + ffmpeg + Whisper)
-  scripts/setup.sh                   ← instala puppeteer; Whisper/ffmpeg opcionais
-  package.json                       ← dep puppeteer
+Isso copia a skill pra `~/.claude/skills/spyops/` e instala o puppeteer (Chromium, alguns minutos na 1ª vez). Depois é só abrir o Claude Code e usar:
+```
+/spy <link da Meta Ad Library do concorrente>
 ```
 
-## Como publicar (uma vez)
-1. Criar repo **privado** no GitHub, ex: `helio-debug/Mkt-Ops`.
-2. Copiar o conteúdo desta pasta pra raiz do repo e `git push`.
-   > Importante: o `marketplace.json` fica em `.claude-plugin/` na **raiz** do repo.
+**Alternativa manual (sem terminal):** baixar o ZIP do repo ("Code → Download ZIP") e copiar a pasta `skills/spyops` inteira pra dentro de `~/.claude/skills/` (fica `~/.claude/skills/spyops/SKILL.md`). Reinicia o Claude Code e o `/spy` aparece.
 
-## Como dar acesso a um aluno (o portão pago)
-- Convidar o usuário GitHub do aluno como **colaborador** do repo (Settings → Collaborators), ou adicionar a um time da org.
-- Cancelou? Remover o colaborador → ele perde as atualizações. (A cópia em cache local dele continua; pra corte duro precisaria de checagem de licença — fora do escopo v1.)
+## Pré-requisitos do aluno
+- **Claude Code capaz de rodar shell** (terminal CLI, app desktop, ou web). SpyOps roda Node + Puppeteer, então precisa de um ambiente com Bash — **não roda em ambiente sem execução de comando.**
+- **Node** instalado (o setup instala o resto).
+- Opcional (análise de vídeo): **ffmpeg + Whisper** — o setup tenta; se falhar, o SpyOps roda normal só pulando os vídeos.
+- A execução usa a conta/assinatura Claude do aluno (custo dele, não seu).
 
-## O que o aluno faz
-1. Precisa ter **Claude Code** (a execução roda na conta/assinatura dele — custo dele, não seu).
-2. No Claude Code:
-   ```
-   /plugin marketplace add helio-debug/Mkt-Ops
-   /plugin install spyops@mktops
-   ```
-   (Usa a credencial git que ele já tem — sem login extra.)
-3. Rodar `/spy <link da Ad Library>`. Na primeira vez a skill roda o `setup.sh` (instala puppeteer + Chromium; alguns minutos, uma vez só).
-4. **Opcional (análise de vídeo):** ter ffmpeg + Whisper. O setup tenta instalar o Whisper local; se falhar, o aluno roda `.venv/bin/pip install openai-whisper` e `brew install ffmpeg`. Sem isso, o SpyOps roda normal só pulando os vídeos.
+## Estrutura do repo
+```
+install.sh                     ← instalador de 1 linha
+skills/spyops/
+  SKILL.md                     ← a skill (usa ${CLAUDE_SKILL_DIR})
+  package.json                 ← dep puppeteer
+  scripts/
+    spy-ads.js, spy-videos.js  ← pipeline
+    setup.sh                   ← instala puppeteer; Whisper/ffmpeg opcionais
+sync-from-canonical.sh         ← copia scripts de automacao/spyops/ (canônico)
+```
 
-## Atualização
-`git push` no repo → o Claude do aluno auto-atualiza (ou ele roda `/plugin marketplace update mktops`). Bump o `version` no `plugin.json` a cada release relevante.
+## Manutenção
+- Canônico dos scripts: `automacao/spyops/` no repo interno. Depois de mudar, rode `bash sync-from-canonical.sh` e `git push` — os alunos pegam na próxima instalação (ou re-rodando o install).
+- Atualização automática pro aluno não existe nesse formato; pra atualizar, ele re-roda o `install.sh`.
 
-## Limitações conhecidas
-- **Windows / aluno não-técnico:** puppeteer entra ok, mas ffmpeg e Whisper local podem exigir instalação manual. Pra esse perfil, o caminho é rodar o SpyOps por ele e entregar o relatório (done-for-you).
-- Transcrição de vídeo depende de Whisper local (v1). Migração pra API key de transcrição fica pra v2 se necessário.
+## Por que skill e não plugin
+O sistema `/plugin` não está disponível em vários ambientes de Claude Code ("/plugin isn't available in this environment"). Skill em `~/.claude/skills/` é auto-descoberta em todos, sem comando de instalação — entrega mais simples e robusta.
+
+## Limitação conhecida
+Windows / aluno não-técnico pode travar no setup de Node/ffmpeg/Whisper. Pra esse perfil, o caminho é você rodar o SpyOps e entregar o relatório (done-for-you).

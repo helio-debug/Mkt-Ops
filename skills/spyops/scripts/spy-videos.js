@@ -27,8 +27,8 @@ const path = require("path");
 const { execFileSync, spawnSync } = require("child_process");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, "..");
-const WHISPER = process.env.SPYOPS_WHISPER || path.join(PLUGIN_ROOT, ".venv", "bin", "whisper");
+const SKILL_ROOT = process.env.CLAUDE_SKILL_DIR || process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, "..");
+const WHISPER = process.env.SPYOPS_WHISPER || path.join(SKILL_ROOT, ".venv", "bin", "whisper");
 
 function parseArgs() {
   const a = process.argv.slice(2);

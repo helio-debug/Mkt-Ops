@@ -5,31 +5,31 @@ description: "Espiona anúncios de concorrentes na Meta Ad Library (sem token, s
 
 # SpyOps — Espionagem de Ads + Funil (Meta Ad Library)
 
-Fluxo roteirizado. Os scripts em `${CLAUDE_PLUGIN_ROOT}/scripts/` resolvem tudo. Não improvisar acesso.
+Fluxo roteirizado. Os scripts em `${CLAUDE_SKILL_DIR}/scripts/` resolvem tudo. Não improvisar acesso.
 
 ## Regras duras
-1. **NUNCA Playwright.** Motor é Puppeteer (instalado no setup do plugin).
+1. **NUNCA Playwright.** Motor é Puppeteer (instalado pelo setup).
 2. **NUNCA a Graph API `/ads_archive`** — erro `2332002`. Ir direto pro pipeline.
-3. Saída em `analises/<slug-do-alvo>/` na pasta do projeto do usuário (kebab-case).
+3. Saída em `analises/<slug-do-alvo>/` na pasta do projeto (kebab-case).
 4. Vídeos vêm em pool do anunciante; de-para por **duração** (card mostra `0:00 / 0:41`). Comportamento esperado.
 
 ## Passo 0 — Garantir o setup (primeira vez)
-Se `${CLAUDE_PLUGIN_ROOT}/node_modules` não existir, rode uma vez:
+Se `${CLAUDE_SKILL_DIR}/node_modules` não existir, rode uma vez:
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/setup.sh"
+bash "${CLAUDE_SKILL_DIR}/scripts/setup.sh"
 ```
 Instala puppeteer (Chromium). Whisper e ffmpeg são opcionais — só pra análise de vídeo; se faltarem, o passo de vídeo é pulado com aviso.
 
 ## Passo 1 — Raspar os ads
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/spy-ads.js" --url "<URL da Ad Library>" --out "analises/<slug>"
+node "${CLAUDE_SKILL_DIR}/scripts/spy-ads.js" --url "<URL da Ad Library>" --out "analises/<slug>"
 # ou: --q "dominio.com" | --page-id 123456   (+ --country BR --status active)
 ```
 Gera `spy-ads.json` (cards + grupos por copy + destinos), `spy-ads.md` e os raws.
 
 ## Passo 2 — Baixar e assistir uma amostra dos vídeos (mín. 5)
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/spy-videos.js" --from-json "analises/<slug>/spy-ads.json" --sample 5 \
+node "${CLAUDE_SKILL_DIR}/scripts/spy-videos.js" --from-json "analises/<slug>/spy-ads.json" --sample 5 \
   --out "analises/<slug>/videos" --frames --transcribe
 ```
 - Ler os mosaicos (`*-mosaic.jpg`) com a tool Read pra descrever o visual.
@@ -37,10 +37,10 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/spy-videos.js" --from-json "analises/<slug>/
 - Sem Whisper instalado, rodar sem `--transcribe` (só frames).
 
 ## Passo 3 — Mapear o funil
-Pra cada destino em `spy-ads.json → destinations`, raspar a LP (Puppeteer: goto + scroll + innerText + anchors + forms; ou `curl -sL` se estática). Levantar: preço/lotes, countdown, campos de form, provedor de checkout, builder da página, links de WhatsApp, downsells.
+Pra cada destino em `spy-ads.json → destinations`, raspar a LP (Puppeteer: goto + scroll + innerText + anchors + forms; ou `curl -sL` se estática). Levantar: preço/lotes, countdown, campos de form, provedor de checkout, builder da página, WhatsApp, downsells.
 
 ## Passo 4 — Relatório
-Escrever `analises/<slug>/spy-report-<slug>.md`: Snapshot · Criativos-mestre (copy literal) · Análise da copy · Desenho do funil (ASCII) · Amostragem de vídeos (roteiro por corte) · O que vale roubar · Limitações.
+`analises/<slug>/spy-report-<slug>.md`: Snapshot · Criativos-mestre (copy literal) · Análise da copy · Desenho do funil (ASCII) · Amostragem de vídeos (roteiro por corte) · O que vale roubar · Limitações.
 
 ## Troubleshooting
 `Cannot find module 'puppeteer'` → rode o setup do Passo 0. Vídeo sem transcrição → Whisper não instalado (opcional). ffmpeg ausente → instala só pra análise de vídeo.
