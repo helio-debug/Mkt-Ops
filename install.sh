@@ -16,6 +16,10 @@ if [ -z "$SRC" ]; then echo "[spyops] ERRO: não achei a skill no pacote."; exit
 echo "[spyops] Instalando em $DEST"
 mkdir -p "$DEST"
 cp -R "$SRC"/. "$DEST"/
+
+# comando /spy (opcional; a skill já responde a /spyops e ao pedido em linguagem natural)
+CMD_SRC="$(find "$TMP" -type f -path '*/commands/spy.md' | head -1)"
+if [ -n "$CMD_SRC" ]; then mkdir -p "$HOME/.claude/commands"; cp "$CMD_SRC" "$HOME/.claude/commands/spy.md"; fi
 rm -rf "$TMP"
 
 echo "[spyops] Rodando setup (puppeteer/Chromium — alguns minutos na 1ª vez)…"
