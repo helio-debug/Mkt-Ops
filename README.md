@@ -17,7 +17,7 @@ plugins/spyops/
 ```
 
 ## Como publicar (uma vez)
-1. Criar repo **privado** no GitHub, ex: `helio-debug/mktops-spyops`.
+1. Criar repo **privado** no GitHub, ex: `helio-debug/Mkt-Ops`.
 2. Copiar o conteúdo desta pasta pra raiz do repo e `git push`.
    > Importante: o `marketplace.json` fica em `.claude-plugin/` na **raiz** do repo.
 
@@ -29,7 +29,7 @@ plugins/spyops/
 1. Precisa ter **Claude Code** (a execução roda na conta/assinatura dele — custo dele, não seu).
 2. No Claude Code:
    ```
-   /plugin marketplace add helio-debug/mktops-spyops
+   /plugin marketplace add helio-debug/Mkt-Ops
    /plugin install spyops@mktops
    ```
    (Usa a credencial git que ele já tem — sem login extra.)
